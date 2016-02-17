@@ -47,8 +47,8 @@ tarpackage=$date-rpm-libcamhal-icamerasrc.tar.gz
 tar zcvf $tarpackage *
 
 #send tar packege
-mv $tarpackage ~/public_html
-mv *.rpm ~/public_html/latest_pi/
+mv $tarpackage /home/icg/public_html
+mv *.rpm /home/icg/public_html/latest_pi/
 
 cd $topdir
 rm -rf $date

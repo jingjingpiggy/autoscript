@@ -231,12 +231,12 @@ update_dependency_rpms
 
 #RUN LIBCAMHAL UT
 run_libcamhal_all_UT_on_B0_tpg
-run_libcamhal_all_UT_on_B0_ov13860
-run_libcamhal_all_UT_on_imx_185
+#run_libcamhal_all_UT_on_B0_ov13860
+#run_libcamhal_all_UT_on_imx_185
 
 #RUN ICAMERASRC UT
 run_icamerasrc_all_UT_on_B0_tpg
-run_icamerasrc_all_UT_on_B0_ov13860
+#run_icamerasrc_all_UT_on_B0_ov13860
 
 exit 0
 
