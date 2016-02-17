@@ -156,6 +156,9 @@ function build_icamerasrc() {
   make clean
   make -j
   CHECK_RESULT $? "build icamerasrc"
+  cd test/utils
+  make -j LIBCAMHAL_DIR=$LIBCAMHAL_CODE_DIR
+  CHECK_FILE gst-tool
 }
 
 function build_icamerasrc_test() {

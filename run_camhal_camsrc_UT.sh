@@ -181,7 +181,7 @@ function run_icamerasrc_all_UT_on_B0_tpg() {
   unset cameraMipiCapture
   export cameraInput=tpg
   cd $ICAMERASRC_CODE_DIR/test
-  DO_EXECUTE ./camerasrc_test.sh -p except BGRx RGBx dma UYVY interlace
+  DO_EXECUTE ./camerasrc_test.sh -p except BGRx RGBx dma UYVY interlace 720_480 720_576
   mkdir file_for_tpg
   mv *.yuv *.nv12 *.log file_for_tpg/
   mv file_for_tpg/ $SOURCE_CODE_DIR/$DATE
