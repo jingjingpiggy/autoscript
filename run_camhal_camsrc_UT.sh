@@ -205,12 +205,12 @@ function run_icamerasrc_all_UT_on_B0_ov13860() {
 function update_dependency_rpms() {
   cd $DEPENDENCY_RPMS_DIR/rpms
 
-  sudo rpm -e libiaaiq-1.0.0-0.x86_64 --nodeps
-  sudo rpm -ivh libiaaiq-1.0.0-0.x86_64.rpm --nodeps
-  sudo rpm -e aiqb-1.0.0-0.x86_64 --nodeps
-  sudo rpm -ivh aiqb-1.0.0-0.x86_64.rpm --nodeps
-  sudo rpm -e libiacss-1.0.0-0.x86_64 --nodeps
-  sudo rpm -ivh libiacss-1.0.0-0.x86_64.rpm --nodeps
+  sudo rpm -e `rpm -qa | grep libiaaiq` --nodeps
+  sudo rpm -ivh libiaaiq-*.rpm --nodeps
+  sudo rpm -e `rpm -qa | grep aiqb` --nodeps
+  sudo rpm -ivh aiqb-*.rpm --nodeps
+  sudo rpm -e `rpm -qa | grep libiacss` --nodeps
+  sudo rpm -ivh libiacss-*.rpm --nodeps
 
 }
 

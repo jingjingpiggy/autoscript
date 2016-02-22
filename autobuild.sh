@@ -92,12 +92,12 @@ function update_dependency_rpm() {
     cd camera2hal-iotg-cam-hal-rpm/rpms
     git pull
   fi
-  sudo rpm -e libiaaiq-1.0.0-0.x86_64 --nodeps
-  sudo rpm -ivh libiaaiq-1.0.0-0.x86_64.rpm --nodeps
-  sudo rpm -e aiqb-1.0.0-0.x86_64 --nodeps
-  sudo rpm -ivh aiqb-1.0.0-0.x86_64.rpm --nodeps
-  sudo rpm -e libiacss-1.0.0-0.x86_64 --nodeps
-  sudo rpm -ivh libiacss-1.0.0-0.x86_64.rpm --nodeps
+  sudo rpm -e `sudo rpm -qa | grep libiaaiq` --nodeps
+  sudo rpm -ivh libiaaiq-*.rpm --nodeps
+  sudo rpm -e `sudo rpm -qa | grep aiqb` --nodeps
+  sudo rpm -ivh aiqb-*.rpm --nodeps
+  sudo rpm -e `sudo rpm -qa | grep libiacss` --nodeps
+  sudo rpm -ivh libiacss-*.rpm --nodeps
 }
 
 
