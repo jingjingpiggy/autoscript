@@ -11,7 +11,7 @@ function submit_patches_from_sandbox_2_master() {
 
   git checkout -b sandbox remotes/origin/sandbox/yocto_startup_1214
 
-  scp -p -P 29418 $GERRITNAME@icggerrit.ir.intel.com:hooks/commit-msg .git/hooks/"
+  scp -p -P 29418 $GERRITNAME@icggerrit.ir.intel.com:hooks/commit-msg .git/hooks/
 
   project="vied-viedandr-$1"
   #patch array
@@ -69,7 +69,7 @@ function submit_icamerasrc_patches() {
   submit_patches_from_sandbox_2_master $1 $2 $3
 }
 
-if [ "$1" = "" -o "$2" = "" ] ; then
+if [ "$1" = "" ] ; then
   echo "please input param1:libcamhal/icamerasrc  param2:old tag  param3:new tag(can be NULL)"
   exit 0
 fi
@@ -78,11 +78,22 @@ read -p "please input you gerrit user name:" GERRITNAME
 
 git clone ssh://icggerrit.ir.intel.com:29418/vied-viedandr-libcamhal
 git clone ssh://icggerrit.ir.intel.com:29418/vied-viedandr-icamerasrc
-submit_libcamhal_patches $1 $2 $3
+submit_libcamhal_patches libcamhal $1 $2
 cd $topdir/$date
-submit_icamerasrc_patches $1 $2 $3
+submit_icamerasrc_patches icamerasrc $1 $2
 
 cd $topdir
-rm -rf $date
+read -p "do you want to delete source code? (y/n):" yn
+case "$yn" in
+    [Yy])
+      rm -rf $date
+      echo "code deleted."
+      ;;
+    [Nn])
+      echo "restore code."
+      ;;
+    *)
+      ;;
+esac
 
 exit 0
