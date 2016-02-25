@@ -16,19 +16,17 @@ if [ $? -ne 0 ]; then
     exit 0
 fi
 
-sudo scp root@$1:~/vied-viedandr-libcamhal/rpm/libcamhal*.rpm .
-sudo scp root@$1:~/vied-viedandr-icamerasrc/rpm/icamerasrc*.rpm .
-sudo scp root@$1:~/camera2hal-iotg-cam-hal-rpm/rpms/*x86_64.rpm .
+sudo scp root@$1:~/dependency_rpms/* .
 
 sudo mkdir PI_BUILD_libcamhal_Test_Script
 
 sudo mkdir PI_BUILD_icamerasrc_Test_Script
 
-sudo scp -r root@$1:~/vied-viedandr-libcamhal/test PI_BUILD_libcamhal_Test_Script
-sudo scp -r root@$1:~/vied-viedandr-icamerasrc/test PI_BUILD_icamerasrc_Test_Script
+sudo scp -r root@$1:~/libcamhal_UT .
+sudo scp -r root@$1:~/icamerasrc_UT .
 
 tarpackage=$date-rpm-libcamhal-icamerasrc.tar.gz
-tar zcvf $tarpackage *
+sudo tar zcvf $tarpackage *
 
 #send tar packege
 sudo scp $tarpackage icg@yocto-build1:~/public_html/

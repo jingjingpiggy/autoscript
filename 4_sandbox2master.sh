@@ -69,7 +69,7 @@ function submit_icamerasrc_patches() {
   submit_patches_from_sandbox_2_master $1 $2 $3
 }
 
-if [ "$1" = "" ] ; then
+if [ -z $1 ] ; then
   echo "please input param1:libcamhal/icamerasrc  param2:old tag  param3:new tag(can be NULL)"
   exit 0
 fi

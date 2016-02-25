@@ -217,7 +217,6 @@ build_icamerasrc_test
 build_icamerasrc_rpm
 
 copy_source_code_and_dependency_rpms_to_board $2
-ssh root@$2 'sh run_camhal_camsrc_UT.sh'
 exit 0
 
 TODO

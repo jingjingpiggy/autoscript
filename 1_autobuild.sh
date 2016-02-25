@@ -2,10 +2,19 @@
 TOPDIR=$PWD
 LIBCAMHAL_CODE_DIR=$TOPDIR/vied-viedandr-libcamhal
 ICAMERASRC_CODE_DIR=$TOPDIR/vied-viedandr-icamerasrc
-GERRITNAME=
+DEPENDENCY_RPMS_DIR=$TOPDIR/dependency_rpms
 STEP_NUM=1;
 DATE=`date +%Y%m%d`
 LOGFILE=$TOPDIR/$DATE.log
+
+WORKWEEK=`expr $(date +%W) + 1`
+WORKDAY=`echo $(date +%w)`
+
+if [ $WORKWEEK -lt 10 ] ; then
+  RELEASE_FILE="ww0$WORKWEEK.$WORKDAY"
+else
+  RELEASE_FILE="ww$WORKWEEK.$WORKDAY"
+fi
 
 function LOGSTEP() {
   echo "STEP $STEP_NUM $1" | tee -a $LOGFILE
@@ -36,6 +45,10 @@ function CHECK_FILE() {
 
 function check_directory() {
   LOGSTEP $FUNCNAME $1
+  if [ -z "$1" ]; then
+      echo "If you want to build camhal & camsrc, you must source toolchain, add toolchain url in param 1."
+      exit 0
+  fi
 
   dir=$1
   if [ ! -d $dir ]; then
@@ -47,6 +60,10 @@ function check_directory() {
 
 function get_latest_code() {
   LOGSTEP $FUNCNAME
+  if [ -z $1 ] || [ -z $2 ] ; then
+      LOGI "you should input both commit id of libcamhal and icamerasrc"
+      exit 0
+  fi
 
   LOGI "get latest libcamhal"
   check_directory $LIBCAMHAL_CODE_DIR
@@ -56,10 +73,12 @@ function get_latest_code() {
     cd $LIBCAMHAL_CODE_DIR
     git checkout -b sandbox remotes/origin/sandbox/yocto_startup_1214
     git pull
+    git reset --hard $1
   else
     cd $LIBCAMHAL_CODE_DIR
     git checkout sandbox
     git pull
+    git reset --hard $1
   fi
 
   cd $TOPDIR
@@ -72,10 +91,13 @@ function get_latest_code() {
     cd $ICAMERASRC_CODE_DIR
     git checkout -b sandbox remotes/origin/sandbox/yocto_startup_1214
     git pull
+    git reset --hard $2
   else
     cd $ICAMERASRC_CODE_DIR
     git checkout sandbox
     git pull
+    cd $ICAMERASRC_CODE_DIR
+    git reset --hard $2
   fi
 
 }
@@ -83,30 +105,35 @@ function get_latest_code() {
 function update_dependency_rpm() {
   LOGSTEP $FUNCNAME
   cd $TOPDIR
-  check_directory camera2hal-iotg-cam-hal-rpm
-  result=$?
-  if [ $result -ne 0 ]; then
-    git clone ssh://$GERRITNAME@git-ger-6.devtools.intel.com:29418/camera2hal-iotg-cam-hal-rpm
-    cd camera2hal-iotg-cam-hal-rpm/rpms
+  check_directory $DEPENDENCY_RPMS_DIR
+  if [ $? -ne 0 ] ; then
+    mkdir dependency_rpms
   else
-    cd camera2hal-iotg-cam-hal-rpm/rpms
-    git pull
+    rm -rf dependency_rpms/*
   fi
+
+  scp icg@yocto-build1:/home/share/iotg_daily_release/$RELEASE_FILE/libcamhal-*.rpm dependency_rpms/
+  CHECK_RESULT $? "get libcamhal rpm"
+  scp icg@yocto-build1:/home/share/iotg_daily_release/$RELEASE_FILE/icamerasrc-*.rpm dependency_rpms/
+  CHECK_RESULT $? "get icamerasrc rpm"
+  scp icg@yocto-build1:/home/share/iotg_daily_release/$RELEASE_FILE/aiqb-*.rpm dependency_rpms/
+  CHECK_RESULT $? "get aiqb rpm"
+  scp icg@yocto-build1:/home/share/iotg_daily_release/$RELEASE_FILE/libiacss-*.rpm dependency_rpms/
+  CHECK_RESULT $? "get libiacss rpm"
+  scp icg@yocto-build1:/home/share/iotg_daily_release/$RELEASE_FILE/libiaaiq-*.rpm dependency_rpms/
+  CHECK_RESULT $? "get libiaaiq rpm"
+  cd dependency_rpms
   sudo rpm -e `sudo rpm -qa | grep libiaaiq` --nodeps
   sudo rpm -ivh libiaaiq-*.rpm --nodeps
   sudo rpm -e `sudo rpm -qa | grep aiqb` --nodeps
   sudo rpm -ivh aiqb-*.rpm --nodeps
   sudo rpm -e `sudo rpm -qa | grep libiacss` --nodeps
   sudo rpm -ivh libiacss-*.rpm --nodeps
+  cd $TOPDIR
 }
-
 
 function source_toolchain() {
   LOGSTEP $FUNCNAM
-  if [ -z "$1" ]; then
-    echo "If you want to build camhal & camsrc, you must source toolchain, add toolchain url in param 1."
-    exit 0
-  fi
 
   source "$1"
   CHECK_RESULT $? "source toolchain"
@@ -131,12 +158,6 @@ function build_libcamhal_test() {
   CHECK_FILE libcamhal_test
 }
 
-function remove_libcamhal_rpm() {
-  LOGSTEP $FUNCNAME
-  sudo rpm -e `rpm -qa | grep libcamhal` --allmatches --nodeps
-}
-
-
 function build_install_libcamhal_rpm() {
   LOGSTEP $FUNCNAME
   cd $LIBCAMHAL_CODE_DIR
@@ -156,9 +177,6 @@ function build_icamerasrc() {
   make clean
   make -j
   CHECK_RESULT $? "build icamerasrc"
-  cd test/utils
-  make -j LIBCAMHAL_DIR=$LIBCAMHAL_CODE_DIR
-  CHECK_FILE gst-tool
 }
 
 function build_icamerasrc_test() {
@@ -167,11 +185,10 @@ function build_icamerasrc_test() {
   make clean
   make -j LIBCAMHAL_DIR=$LIBCAMHAL_CODE_DIR
   CHECK_FILE icamsrc_test
-}
 
-function remove_icamerasrc_rpm() {
-  LOGSTEP $FUNCNAME
-  sudo rpm -e `rpm -qa | grep icamerasrc` --nodeps
+  cd $ICAMERASRC_CODE_DIR/test/utils
+  make -j LIBCAMHAL_DIR=$LIBCAMHAL_CODE_DIR
+  CHECK_FILE gst-tool
 }
 
 function build_icamerasrc_rpm() {
@@ -192,21 +209,27 @@ function copy_source_code_and_dependency_rpms_to_board() {
   else
       ssh-keygen -f "$HOME/.ssh/known_hosts" -R $1
       #remove old code and rpms
-      ssh root@$1 'rm -rf vied-viedandr-libcamhal/ vied-viedandr-icamerasrc/ camera2hal-iotg-cam-hal-rpm/'
-      scp -r vied-viedandr-* root@$1:~/
-      scp -r camera2hal-iotg-cam-hal-rpm/ root@$1:~/
+      ssh root@$1 'rm -rf libcamhal_UT/ icamerasrc_UT/ dependency_rpms/'
+
+      cp -r vied-viedandr-libcamhal/test .
+      mv test/ libcamhal_UT/
+      scp -r libcamhal_UT/ root@$1:~/
+      rm -rf libcamhal_UT
+      
+      cp -r vied-viedandr-icamerasrc/test .
+      mv test/ icamerasrc_UT/
+      scp -r icamerasrc_UT/ root@$1:~/
+      rm -rf icamerasrc_UT
+      
+      scp -r dependency_rpms/ root@$1:~/
   fi
 }
 
-read -p "please input you gerrit user name:" GERRITNAME
+source_toolchain $1
 
-get_latest_code
-remove_libcamhal_rpm
-remove_icamerasrc_rpm
+get_latest_code $2 $3
 
 update_dependency_rpm
-
-source_toolchain $1
 
 build_libcamhal
 build_libcamhal_test
@@ -216,9 +239,8 @@ build_icamerasrc
 build_icamerasrc_test
 build_icamerasrc_rpm
 
-copy_source_code_and_dependency_rpms_to_board $2
-ssh root@$2 'sh run_camhal_camsrc_UT.sh'
+copy_source_code_and_dependency_rpms_to_board $4
 exit 0
 
-TODO
 
+TODO

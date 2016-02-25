@@ -1,9 +1,9 @@
 #!/bin/bash
 TOPDIR=$PWD
 SOURCE_CODE_DIR=$TOPDIR
-LIBCAMHAL_CODE_DIR=$SOURCE_CODE_DIR/vied-viedandr-libcamhal
-ICAMERASRC_CODE_DIR=$SOURCE_CODE_DIR/vied-viedandr-icamerasrc
-DEPENDENCY_RPMS_DIR=$SOURCE_CODE_DIR/camera2hal-iotg-cam-hal-rpm
+LIBCAMHAL_CODE_DIR=$SOURCE_CODE_DIR/libcamhal_UT
+ICAMERASRC_CODE_DIR=$SOURCE_CODE_DIR/libcamhal_UT
+DEPENDENCY_RPMS_DIR=$SOURCE_CODE_DIR/dependency_rpms
 
 
 GIT_USER=
@@ -61,28 +61,6 @@ function mkdir_directory() {
   mkdir -p $dir
 }
 
-function remove_libcamhal_rpm() {
-  LOGSTEP $FUNCNAME
-  rpm -e `rpm -qa | grep libcamhal` --allmatches --nodeps
-}
-
-function install_libcamhal_rpm() {
-  LOGSTEP $FUNCNAME
-  cd $LIBCAMHAL_CODE_DIR/rpm
-  rpm -ivh --nodeps libcamhal-*.rpm --nodeps
-}
-
-function remove_icamerasrc_rpm() {
-  LOGSTEP $FUNCNAME
-  rpm -e `rpm -qa | grep icamerasrc` --allmatches --nodeps
-}
-
-function install_icamerasrc_rpm() {
-  LOGSTEP $FUNCNAME
-  cd $ICAMERASRC_CODE_DIR/rpm
-  rpm -ivh --nodeps --noparentdirs --prefix `pkg-config --variable=pluginsdir gstreamer-1.0` icamerasrc-*.rpm
-}
-
 function run_libcamhal_all_UT_on_B0_tpg() {
   LOGSTEP $FUNCNAME
   cd $LIBCAMHAL_CODE_DIR/test
@@ -129,15 +107,19 @@ function run_icamerasrc_all_UT_on_B0_ov13860() {
 }
 
 function update_dependency_rpms() {
-  cd $DEPENDENCY_RPMS_DIR/rpms
+  check_directory $DEPENDENCY_RPMS_DIR
+  cd $DEPENDENCY_RPMS_DIR
 
-  sudo rpm -e `rpm -qa | grep libiaaiq` --nodeps
-  sudo rpm -ivh libiaaiq-*.rpm --nodeps
-  sudo rpm -e `rpm -qa | grep aiqb` --nodeps
-  sudo rpm -ivh aiqb-*.rpm --nodeps
-  sudo rpm -e `rpm -qa | grep libiacss` --nodeps
-  sudo rpm -ivh libiacss-*.rpm --nodeps
-
+  rpm -e `rpm -qa | grep libcamhal` --nodeps
+  rpm -ivh libcamhal-*.rpm --nodeps
+  rpm -e `rpm -qa | grep icamerasrc` --nodeps
+  rpm -ivh --nodeps --noparentdirs --prefix `pkg-config --variable=pluginsdir gstreamer-1.0` icamerasrc-*.rpm
+  rpm -e `rpm -qa | grep libiaaiq` --nodeps
+  rpm -ivh libiaaiq-*.rpm --nodeps
+  rpm -e `rpm -qa | grep aiqb` --nodeps
+  rpm -ivh aiqb-*.rpm --nodeps
+  rpm -e `rpm -qa | grep libiacss` --nodeps
+  rpm -ivh libiacss-*.rpm --nodeps
 }
 
 
@@ -146,12 +128,6 @@ function update_dependency_rpms() {
 #############################################################################
 
 mkdir_directory $SOURCE_CODE_DIR/$DATE
-
-remove_libcamhal_rpm
-install_libcamhal_rpm
-
-remove_icamerasrc_rpm
-install_icamerasrc_rpm
 
 update_dependency_rpms
 
