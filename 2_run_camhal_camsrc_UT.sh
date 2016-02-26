@@ -2,7 +2,7 @@
 TOPDIR=$PWD
 SOURCE_CODE_DIR=$TOPDIR
 LIBCAMHAL_CODE_DIR=$SOURCE_CODE_DIR/libcamhal_UT
-ICAMERASRC_CODE_DIR=$SOURCE_CODE_DIR/libcamhal_UT
+ICAMERASRC_CODE_DIR=$SOURCE_CODE_DIR/icamerasrc_UT
 DEPENDENCY_RPMS_DIR=$SOURCE_CODE_DIR/dependency_rpms
 
 
@@ -63,19 +63,19 @@ function mkdir_directory() {
 
 function run_libcamhal_all_UT_on_B0_tpg() {
   LOGSTEP $FUNCNAME
-  cd $LIBCAMHAL_CODE_DIR/test
+  cd $LIBCAMHAL_CODE_DIR
   DO_EXECUTE ./test-all.py 0
 }
 
 function run_libcamhal_all_UT_on_B0_ov13860() {
   LOGSTEP $FUNCNAME
-  cd $LIBCAMHAL_CODE_DIR/test
+  cd $LIBCAMHAL_CODE_DIR
   DO_EXECUTE ./test-all.py 3
 }
 
 function run_libcamhal_all_UT_on_imx_185() {
   LOGSTEP $FUNCNAME
-  cd $LIBCAMHAL_CODE_DIR/test
+  cd $LIBCAMHAL_CODE_DIR
   DO_EXECUTE ./test-all.py 8
   DO_EXECUTE ./test-all.py 9
 }
@@ -84,7 +84,7 @@ function run_icamerasrc_all_UT_on_B0_tpg() {
   LOGSTEP $FUNCNAME
   unset cameraMipiCapture
   export cameraInput=tpg
-  cd $ICAMERASRC_CODE_DIR/test
+  cd $ICAMERASRC_CODE_DIR
   DO_EXECUTE ./camerasrc_test.sh -p except BGRx RGBx dma UYVY interlace 720_480 720_576 kpi
   mkdir file_for_tpg
   mv *.yuv *.nv12 *.log file_for_tpg/
@@ -96,7 +96,7 @@ function run_icamerasrc_all_UT_on_B0_ov13860() {
 
   unset camieraMipiCapture
   export cameraInput=ov13860
-  cd $ICAMERASRC_CODE_DIR/test
+  cd $ICAMERASRC_CODE_DIR
   DO_EXECUTE ./camerasrc_test.sh -f Script.gst_launch_icamerasrc_filesink_YUY2_1920_1080
   DO_EXECUTE ./camerasrc_test.sh -f Script.gst_launch_icamerasrc_filesink_NV12_1920_1080
   DO_EXECUTE ./camerasrc_test.sh -f Script.gst_launch_preview_icamerasrc_fakesink_1920_1080_fps
