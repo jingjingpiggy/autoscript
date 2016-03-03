@@ -3,7 +3,7 @@
 topdir=$PWD
 date=`date +%Y%m%d`
 
-sudo mkdir $date
+mkdir $date
 cd $date
 GERRITNAME=
 
@@ -78,6 +78,10 @@ read -p "please input you gerrit user name:" GERRITNAME
 
 git clone ssh://icggerrit.ir.intel.com:29418/vied-viedandr-libcamhal
 git clone ssh://icggerrit.ir.intel.com:29418/vied-viedandr-icamerasrc
+if [ $? -ne 0 ] ; then
+    echo "program exit"
+    exit 0
+fi
 submit_libcamhal_patches libcamhal $1 $2
 cd $topdir/$date
 submit_icamerasrc_patches icamerasrc $1 $2

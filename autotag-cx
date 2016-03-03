@@ -1,0 +1,23 @@
+#!/bin/bash
+
+if [[ $# < 4 ]]; then
+echo "Usage: ./autotag-cx project_name branch tag_name commit_id"
+exit 1
+fi
+
+project=vied-viedandr-$1
+branch=$2
+tags="$3"
+commit_id="$4"
+
+cd $project
+
+git checkout $2
+
+git pull
+
+git tag $tags $commit_id
+git push --tags
+
+cd -
+
