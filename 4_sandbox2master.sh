@@ -36,8 +36,18 @@ function submit_patches_from_sandbox_2_master() {
   	for ((i=1;i<=$num_of_patch;i++))
   	do
   	  commit_id=`git log --no-merges --format="%H" $2..$3 | sed -n $i'p'`
-  	  PATCH_COMMIT_SET[$commit_index]=$commit_id
-  	  commit_index=$(($commit_index-1))
+      change_id=`ssh $GERRITNAME@icggerrit.ir.intel.com -p 29418 gerrit query project:$project status:merged branch:sandbox/yocto_startup_1214 commit:$commit_id | grep "Change-Id"`
+      change_id=`echo $change_id | cut -d ':' -f 2`
+      change_id=`echo ${change_id:1}`
+
+      #now we need to make sure this patch hasn't been merged on master branch..if not, we will proceed, otherwise jump through
+      check_if_merged=`ssh $GERRITNAME@icggerrit.ir.intel.com -p 29418 gerrit query --current-patch-set branch:master change:$change_id | grep "MERGED"`
+      if [ -z $check_if_merged ] ; then
+  	    PATCH_COMMIT_SET[$commit_index]=$commit_id
+  	    commit_index=$(($commit_index-1))
+      else
+        echo "this patch already merged on master branch!"
+      fi
   	done
   
       #switch to master branch

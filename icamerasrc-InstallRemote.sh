@@ -1,4 +1,5 @@
 #!/bin/bash
+rm rpm/*.rpm
 make clean
 make -j
 make rpm
