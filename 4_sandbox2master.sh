@@ -16,19 +16,19 @@ function submit_patches_from_sandbox_2_master() {
   project="vied-viedandr-$1"
   #patch array
   PATCH_COMMIT_SET=()
-  
+
   #calculate number of patches
   num_of_patch=`git log --no-merges --format="%H" $2..$3 | wc -l`
   commit_index=$num_of_patch
-  
+
   #confirmation of information
   echo "you are working on $project, old tag is $2, new tag is $3"
   echo -e '\n'
-  
+
   echo "there are $num_of_patch patches will be submitted to master:"
   git log --no-merges --format="%H %Cblue%s %Cgreen%m %Cred%an" $2..$3
   echo -e '\n'
-  
+
   read -p "are you sure about input parameters?  (y/n):" yn
   case "$yn" in
     [Yy])
@@ -49,10 +49,10 @@ function submit_patches_from_sandbox_2_master() {
         echo "this patch already merged on master branch!"
       fi
   	done
-  
+
       #switch to master branch
   	git checkout master
-  
+
       #cherry-pick and push patch to master
   	for ((j=1;j<=$num_of_patch;j++))
   	do
@@ -71,15 +71,13 @@ function submit_patches_from_sandbox_2_master() {
 
 function acquire_latest_code_and_review_patch() {
   cd $topdir/$date/vied-viedandr-$1
-  git checkout -b sandbox remotes/origin/sandbox/yocto_startup_1214
-
+  git checkout sandbox
   project="vied-viedandr-$1"
   #change-id array
   change_id_index=0
 
   #calculate number of patches
   num_of_patch=`git log --no-merges --format="%H" $2..$3 | wc -l`
-
   #confirmation of information
   echo "reviewing $project's patches on master branch"
   echo -e '\n'
@@ -98,18 +96,18 @@ function acquire_latest_code_and_review_patch() {
               if [ $useremail != $mail ]; then
                   #get the whole str of change-id of this patch
                   change_id_index=$(($change_id_index+1))
-                  change_id=`ssh $gerritname@icggerrit.ir.intel.com -p 29418 gerrit query project:$project status:merged branch:sandbox/yocto_startup_1214 commit:$commit_id | grep "Change-Id"`
+                  change_id=`ssh $GERRITNAME@icggerrit.ir.intel.com -p 29418 gerrit query project:$project status:merged branch:sandbox/yocto_startup_1214 commit:$commit_id | grep "Change-Id"`
                   change_id=`echo $change_id | cut -d ':' -f 2`
                   change_id=`echo ${change_id:1}`
 
                   #get the whole str of commit-id of this patch on master branch
-                  commit_id_master=`ssh $gerritname@icggerrit.ir.intel.com -p 29418 gerrit query --current-patch-set branch:master change:$change_id | grep "revision"`
+                  commit_id_master=`ssh $GERRITNAME@icggerrit.ir.intel.com -p 29418 gerrit query --current-patch-set branch:master change:$change_id | grep "revision"`
                   commit_id_master=`echo $commit_id_master | cut -d ':' -f 2`
                   commit_id_master=`echo ${commit_id_master:1}`
                   echo "patch commit message:$commit_msg Change-Id:$change_id commit-id on master branch:$commit_id_master"
 
                   #start reviewing,review+1
-                  ssh $gerritname@icggerrit.ir.intel.com -p 29418 gerrit review $commit_id_master --code-review +1
+                  ssh $GERRITNAME@icggerrit.ir.intel.com -p 29418 gerrit review $commit_id_master --code-review +1
               fi
           done
           ;;
@@ -133,7 +131,9 @@ function submit_icamerasrc_patches() {
   acquire_latest_code_and_review_patch $1 $2 $3
 }
 
-###################################################################################################
+############
+# MAIN
+############
 
 if [ -z $1 ] ; then
   echo "please input param1:libcamhal/icamerasrc  param2:old tag  param3:new tag(can be NULL)"
