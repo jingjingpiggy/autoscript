@@ -91,24 +91,21 @@ function acquire_latest_code_and_review_patch() {
               commit_id=`git log --no-merges --format="%H %ae" $2..$3 | sed -n $i'p' | awk '{print $1}'`
               mail=`git log --no-merges --format="%H %ae" $2..$3 | sed -n $i'p' | awk '{print $2}'`
               commit_msg=`git log --no-merges --format="%s" $2..$3 | sed -n $i'p'`
-
               #if not the author himself,then he can review,or break
-              if [ $useremail != $mail ]; then
-                  #get the whole str of change-id of this patch
-                  change_id_index=$(($change_id_index+1))
-                  change_id=`ssh $GERRITNAME@icggerrit.ir.intel.com -p 29418 gerrit query project:$project status:merged branch:sandbox/yocto_startup_1214 commit:$commit_id | grep "Change-Id"`
-                  change_id=`echo $change_id | cut -d ':' -f 2`
-                  change_id=`echo ${change_id:1}`
 
-                  #get the whole str of commit-id of this patch on master branch
-                  commit_id_master=`ssh $GERRITNAME@icggerrit.ir.intel.com -p 29418 gerrit query --current-patch-set branch:master change:$change_id | grep "revision"`
-                  commit_id_master=`echo $commit_id_master | cut -d ':' -f 2`
-                  commit_id_master=`echo ${commit_id_master:1}`
-                  echo "patch commit message:$commit_msg Change-Id:$change_id commit-id on master branch:$commit_id_master"
+              #get the whole str of change-id of this patch
+              change_id_index=$(($change_id_index+1))
+              change_id=`ssh $GERRITNAME@icggerrit.ir.intel.com -p 29418 gerrit query project:$project status:merged branch:sandbox/yocto_startup_1214 commit:$commit_id | grep "Change-Id"`
+              change_id=`echo $change_id | cut -d ':' -f 2`
+              change_id=`echo ${change_id:1}`
+              #get the whole str of commit-id of this patch on master branch
+              commit_id_master=`ssh $GERRITNAME@icggerrit.ir.intel.com -p 29418 gerrit query --current-patch-set branch:master change:$change_id | grep "revision"`
+              commit_id_master=`echo $commit_id_master | cut -d ':' -f 2`
+              commit_id_master=`echo ${commit_id_master:1}`
+              echo "patch commit message:$commit_msg Change-Id:$change_id commit-id on master branch:$commit_id_master"
 
-                  #start reviewing,review+1
-                  ssh $GERRITNAME@icggerrit.ir.intel.com -p 29418 gerrit review $commit_id_master --code-review +1
-              fi
+              #start reviewing,review+1
+              ssh $GERRITNAME@icggerrit.ir.intel.com -p 29418 gerrit review $commit_id_master --code-review +1
           done
           ;;
       [Nn])
@@ -127,7 +124,7 @@ function submit_libcamhal_patches() {
 
 function submit_icamerasrc_patches() {
   cd vied-viedandr-icamerasrc
-  submit_patches_from_sandbox_2_master $1 $2 $3
+  #submit_patches_from_sandbox_2_master $1 $2 $3
   acquire_latest_code_and_review_patch $1 $2 $3
 }
 
@@ -141,7 +138,6 @@ if [ -z $1 ] ; then
 fi
 
 read -p "please input you gerrit user name:" GERRITNAME
-read -p "please input your email address(xx@intel.com):" useremail
 
 git clone ssh://icggerrit.ir.intel.com:29418/vied-viedandr-libcamhal
 git clone ssh://icggerrit.ir.intel.com:29418/vied-viedandr-icamerasrc
